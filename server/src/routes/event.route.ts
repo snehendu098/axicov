@@ -5,3 +5,5 @@ import { message } from "../controllers/event.controller";
 const router = Router();
 
 router.route('/save').post(message);
+
+export default router;
