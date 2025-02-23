@@ -1,0 +1,45 @@
+{
+  "name": "earnkit-langchain",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc -b",
+    "start": "node ./dist/index.js",
+    "dev": "npm run build && npm run start",
+    "test": "npx ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@farcaster/hub-nodejs": "^0.12.7",
+    "@langchain/anthropic": "^0.3.13",
+    "@langchain/community": "^0.3.30",
+    "@langchain/core": "^0.3.40",
+    "@langchain/google-genai": "^0.1.8",
+    "@langchain/langgraph": "^0.2.46",
+    "@langchain/langgraph-checkpoint-mongodb": "^0.0.6",
+    "@neynar/nodejs-sdk": "^2.13.1",
+    "@thirdweb-dev/sdk": "^4.0.99",
+    "@types/express": "^5.0.0",
+    "@types/ws": "^8.5.14",
+    "chalk": "^4.1.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongodb": "^6.13.1",
+    "mongoose": "^8.10.1",
+    "thirdweb": "^5.88.4",
+    "typescript": "^5.7.3",
+    "web3": "^4.16.0",
+    "ws": "^8.18.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/chalk": "^2.2.4",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17"
+  }
+}
