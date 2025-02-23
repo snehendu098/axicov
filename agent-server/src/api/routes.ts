@@ -26,6 +26,7 @@ router.post("/agent/initialize", async (req, res): Promise<any> => {
     }
 
     const agent = new Agent({ threadId, params });
+    // code chodeni
     await agent.initialize(toolNumbers);
     await agents.set(threadId, agent);
 
