@@ -9,7 +9,7 @@ import { privateKeyToAccount } from "thirdweb/wallets";
 import Web3 from "web3";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { tool } from "@langchain/core/tools";
-import { baseToolSchema } from "../schema";
+import { blockchainToolsSchema } from "../schema";
 import chalk from "chalk";
 import { toolType } from "../../types";
 import { EventEmitter } from "events";
@@ -57,7 +57,7 @@ export class BlockchainClass extends EventEmitter {
     }
 
     if (network === "mainnet") {
-      const cId = 8453;
+      const cId = 146;
       this.web3 = new Web3(
         `https://${cId}.rpc.thirdweb.com/${
           process.env.THIRDWEB_SECRET! || thirdwebAPIKey
@@ -65,7 +65,7 @@ export class BlockchainClass extends EventEmitter {
       );
       this.chain = defineChain(cId);
     } else {
-      const cId = 84532;
+      const cId = 57054;
       this.web3 = new Web3(
         `https://${cId}.rpc.thirdweb.com/${
           process.env.THIRDWEB_SECRET! || thirdwebAPIKey
@@ -99,7 +99,7 @@ export class BlockchainClass extends EventEmitter {
   }
 
   async initialize() {
-    // Save something to the agent params
+    // POST" Save something to the agent params
 
     if (!this.agent) {
       throw new Error("Agent instance is required");
@@ -108,6 +108,12 @@ export class BlockchainClass extends EventEmitter {
     if (!this.agent?.params.publicKey) {
       this.agent.params["publicKey"] = this.account.address;
     }
+
+    this.agent.runtimeParams = {
+      ...this.agent.runtimeParams,
+      client: this.client,
+    };
+
     return this.agent?.params;
   }
 
@@ -120,6 +126,13 @@ export class BlockchainClass extends EventEmitter {
       console.log(chalk.green(tokenName, tokenSymbol, tokenSupply));
       console.log(chalk.bgGray("Deploying token"));
 
+      this.emit("tool", {
+        tool: "blockchain",
+        status: "DEPLOYING",
+        message: `Deploying token: ${tokenName} (${tokenSymbol} with supply ${tokenSupply})`,
+        timestamp: new Date().toISOString(),
+      });
+
       const deployedAddress = await this.sdk.deployer.deployToken({
         name: tokenName,
         symbol: tokenSymbol,
@@ -130,7 +143,7 @@ export class BlockchainClass extends EventEmitter {
           `Deployed at address ${deployedAddress}, Minting tokens to wallet`
         )
       );
-      this.emit("toolEvent", {
+      this.emit("tool", {
         tool: "blockchain",
         status: "COMPLETE",
         message: `Deployed at address ${deployedAddress}, Minting tokens to wallet`,
@@ -147,7 +160,7 @@ export class BlockchainClass extends EventEmitter {
       );
 
       console.log(chalk.bgGray(`Minted tokens: ${mintTxn.receipt.blockHash}`));
-      this.emit("toolEvent", {
+      this.emit("tool", {
         tool: "blockchain",
         status: "COMPLETE",
         message: `Minted tokens: ${mintTxn.receipt.blockHash}`,
@@ -172,7 +185,7 @@ export class BlockchainClass extends EventEmitter {
   async getNativeTokenBalance() {
     try {
       console.log(chalk.bgGray("Fetching native token balance"));
-      this.emit("toolEvent", {
+      this.emit("tool", {
         tool: "blockchain",
         status: "FETCHING",
         message: `Getting native token balance`,
@@ -191,36 +204,36 @@ export const exportBlockchainTools = async (agent: Agent) => {
     agent,
   });
 
-  blockchainInstance.initialize();
+  return blockchainInstance.initialize().then(() => {
+    blockchainInstance.addListener("tool", (event) => {
+      if (global.currentThreadId) {
+        sseManager.emitToolEvent(global.currentThreadId, event);
+      }
+    });
 
-  blockchainInstance.addListener("toolEvent", (event) => {
-    if (global.currentThreadId) {
-      sseManager.emitToolEvent(global.currentThreadId, event);
-    }
+    const blockchainTools: {
+      [key: string]: toolType;
+    } = {
+      deployToken: tool(async (input) => {
+        return await blockchainInstance.deployToken(
+          input.tokenName,
+          input.tokenSymbol,
+          input.tokenSupply
+        );
+      }, blockchainToolsSchema.deployTokenSchema),
+
+      getBalanceOfToken: tool(async (input) => {
+        return await blockchainInstance.getBalanceOfToken(input.tokenAddress);
+      }, blockchainToolsSchema.getBalanceOfTokenSchema),
+
+      getNativeTokenBalance: tool(async () => {
+        return await blockchainInstance.getNativeTokenBalance();
+      }, blockchainToolsSchema.getNativeTokenBalance),
+    };
+
+    return {
+      tools: Object.values(blockchainTools),
+      schema: blockchainToolsSchema,
+    };
   });
-
-  const blockchainTools: {
-    [key: string]: toolType;
-  } = {
-    deployToken: tool(async (input) => {
-      return await blockchainInstance.deployToken(
-        input.tokenName,
-        input.tokenSymbol,
-        input.tokenSupply
-      );
-    }, baseToolSchema.deployTokenSchema),
-
-    getBalanceOfToken: tool(async (input) => {
-      return await blockchainInstance.getBalanceOfToken(input.tokenAddress);
-    }, baseToolSchema.getBalanceOfTokenSchema),
-
-    getNativeTokenBalance: tool(async () => {
-      return await blockchainInstance.getNativeTokenBalance();
-    }, baseToolSchema.getNativeTokenBalance),
-  };
-
-  return {
-    tools: Object.values(blockchainTools),
-    schema: baseToolSchema,
-  };
 };

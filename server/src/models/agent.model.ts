@@ -1,18 +1,17 @@
 import { Schema, model, Document } from "mongoose";
 import { Event } from "./event.model";
-import { User } from "./user.model";
 
 export interface Agent extends Document {
   name: string;
   description: string;
   imageUrl: string;
   instructions: string;
-  threadId: string;//mongoDB -> uuid.toString gen
+  threadId: string; //mongoDB -> uuid.toString gen
   messages: Event["_id"][];
   params: object | null; // update
-  createdBy: User["_id"];
-  privateKey: string;//gen
-  toolNumbers: number[]
+  createdBy: string;
+  privateKey: string; //gen
+  toolNumbers: number[];
 }
 
 const agentSchema = new Schema<Agent>(
@@ -41,10 +40,12 @@ const agentSchema = new Schema<Agent>(
       type: String,
       required: true,
     },
-    toolNumbers: [{
-      type: Number,
-      required: true
-    }],
+    toolNumbers: [
+      {
+        type: Number,
+        required: true,
+      },
+    ],
     messages: [
       {
         type: Schema.Types.ObjectId,
@@ -52,8 +53,7 @@ const agentSchema = new Schema<Agent>(
       },
     ],
     createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
     privateKey: {

@@ -1,4 +1,6 @@
+import axios from "axios";
 import { Response } from "express";
+import { dbEndpoint } from "../constants";
 
 class SSEManager {
   private static instance: SSEManager;
@@ -37,16 +39,29 @@ class SSEManager {
     }
   }
 
-  emitToolEvent(threadId: string, event: any) {
+  /**
+   *
+   * Has type: {"type":"tool","tool":"agent","status":"complete","message":"Message processed successfully","timestamp":"2025-02-27T15:05:44.234Z"}
+   * And:{ type: "agent", message: response.messages[response.messages.length - 1].content, timestamp: new Date().toISOString()}
+   */
+
+  async emitToolEvent(threadId: string, event: any, type?: string) {
     const client = this.clients.get(threadId);
+
     if (client) {
       client.write(
         `data: ${JSON.stringify({
-          type: "toolEvent",
+          type: type || "tool",
           ...event,
         })}\n\n`
       );
     }
+
+    await axios.post(`${dbEndpoint}/events/save`, {
+      type: event.type || event.tool,
+      body: event.message,
+      agentInstance: threadId,
+    });
   }
 }
 

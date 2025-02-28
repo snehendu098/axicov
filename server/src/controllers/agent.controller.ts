@@ -1,68 +1,108 @@
 import { Request, Response } from "express";
 import { AgentModel } from "../models/agent.model";
 import { generatePrivateKey } from "../helper";
+import mongoose from "mongoose";
 
 interface RequestBody {
   name: string;
   description: string;
   imageUrl: string;
-  instruction: string;
+  instructions: string;
   params: object | null;
   threadId: string;
   toolNumbers: number[];
   createdBy: string;
 }
 
-const createAgent = async (req: Request, res: Response) => {
+/**
+ *
+ * This route will initialize an agent:
+ *    Find any agent with threadId and send the agent as response
+ *    Or create a new agent and then send it as response
+ * @param req
+ * @param res
+ * @returns agent if it is already created or creates a new one and then sends the request to the agent
+ */
+
+const initAgent = async (req: Request, res: Response) => {
   try {
     const {
       name,
       description,
       imageUrl,
-      instruction,
+      instructions,
       threadId,
       toolNumbers,
       createdBy,
+      params,
     }: RequestBody = req.body;
+
+    let agent = await AgentModel.findById(threadId);
+    let constructedParams;
+
+    if (agent) {
+      constructedParams = {
+        ...agent.params,
+        name: agent.name,
+        description: agent.description,
+        instructions: agent.instructions,
+        privateKey: agent.privateKey,
+        toolNumbers: agent.toolNumbers,
+      };
+      // console.log("CPs", constructedParams);
+      res.status(201).json({ success: true, data: constructedParams });
+      return;
+    }
 
     if (
       !name ||
       !description ||
       !imageUrl ||
-      !instruction ||
+      !instructions ||
       !threadId ||
       !toolNumbers ||
       !createdBy
     ) {
       res.status(400).json({
         message:
-          "Name, description, imageURL, instruction, params, threadId, toolNumbers, messages and createdBy are required",
+          "Name, description, imageURL, instructions, threadId, toolNumbers, messages and createdBy are required",
       });
     }
 
     const privateKey = await generatePrivateKey();
-    const params = {
-        privateKey
-    }
 
-    await AgentModel.create({
+    constructedParams = {
+      ...params,
+      name,
+      description,
+      instructions,
+      privateKey,
+      toolNumbers,
+    };
+
+    agent = await AgentModel.create({
+      _id: new mongoose.Types.ObjectId(threadId),
       name,
       description,
       imageUrl,
-      instruction,
+      instructions,
       params,
       threadId,
       privateKey,
       toolNumbers,
       messages: [],
-      createdBy
+      createdBy,
     });
+
+    // console.log("CPs", constructedParams);
 
     res.status(201).json({
       message: "Agent created successfully",
+      success: true,
+      data: constructedParams,
     });
   } catch (err) {
-    console.log("Agent creation error");
+    console.log("Agent creation error", err);
     res.status(500).json({
       message: "internal server error",
     });
@@ -72,17 +112,50 @@ const createAgent = async (req: Request, res: Response) => {
 const updateAgent = async (req: Request, res: Response) => {
   try {
     const { params, threadId } = req.body;
-    const agentDoc = await AgentModel.findOne({threadId})
+    const agentDoc = await AgentModel.findOne({ threadId });
+
     if (!agentDoc) {
-        return res.status(500).json({
-            message: "Agent not found",
-        })
+      res.status(500).json({
+        message: "Agent not found",
+      });
+      return;
     }
 
-    return res.status(201).json({message: "", data: agentDoc})
+    agentDoc.params = params;
+    await agentDoc.save();
 
-  } catch (error) {}
+    res.status(201).json({
+      message: "Agent updated successully",
+      data: agentDoc,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ message: "Error occurred", success: false });
+  }
 };
 
+const getAgentParams = async (req: Request, res: Response) => {
+  try {
+    const { threadId } = req.params;
+    const agentDoc = await AgentModel.findOne({ threadId });
 
-export { createAgent, updateAgent };
+    if (!agentDoc) {
+      res.status(404).json({
+        message: "Agent not found",
+        success: false,
+      });
+      return;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Fetching agent params",
+      data: agentDoc.params,
+    });
+  } catch (err) {
+    res.status(401).json({ message: "Error occurred", success: false });
+  }
+};
+
+export { initAgent, updateAgent, getAgentParams };

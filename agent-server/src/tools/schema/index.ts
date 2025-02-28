@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CastIdSchema } from "../farcaster/types";
 import { Tools } from "../../types";
 
-export const baseToolSchema: Tools = {
+export const blockchainToolsSchema: Tools = {
   deployTokenSchema: {
     name: "tokenDeployer",
     description: `
@@ -10,10 +10,25 @@ export const baseToolSchema: Tools = {
 
        **IMPORTANT INSTRUCTIONS**:
        - Don't invent the token symbol, token name, initial supply of the token. These must be provided by the user itself
+       - Before deployment of the token, always make a confirmation from the user that the token details are correct
 
        **EXAMPLES**
+       ------------
        User: Deploy a token
        You: Please provide the token symbol, token name and initial supply of the token
+
+       User: Deploy a token named Silion
+       You: Provide the token supply, and the token symbol
+
+       User: Deploy a token named Silion with symbol SIL
+       You: Provide the token supply
+
+       User: 7000
+       You: I'll deploy a token named Silion with symbol SIL and initial supply of 7000. Should I proceed?
+
+       User: Yes
+       You: <Deploy the token>
+       ------------
       `,
     schema: z.object({
       tokenName: z.string().describe("The name of the token"),

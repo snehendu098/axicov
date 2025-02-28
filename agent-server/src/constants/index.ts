@@ -1,3 +1,1 @@
-// import { blockchainInstance } from "../tools";
-
-// export { blockchainInstance };
+export const dbEndpoint = process.env.DB_ENDPOINT! as string;

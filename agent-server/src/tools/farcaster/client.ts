@@ -25,27 +25,27 @@ const getDeadline = () => {
 
 export class FarcasterClient {
   neynar: NeynarAPIClient;
-  signerUUid: string;
+  signerUUID: string | undefined;
 
-  constructor({
-    neynar,
-    signerUUID,
-  }: {
-    neynar: NeynarAPIClient;
-    signerUUID: string;
-  }) {
+  constructor({ neynar }: { neynar: NeynarAPIClient }) {
     this.neynar = neynar;
-    this.signerUUid = signerUUID;
+    // this.signerUUID = undefined;
   }
 
   async publishCast(cast: string, parentCastId: CastId | undefined) {
     try {
-      console.log(chalk.green(`Cast content: ${cast}`));
+      console.log(
+        chalk.green(
+          `Cast content: ${cast}, uuid: ${this.signerUUID}, castId ${parentCastId}`
+        )
+      );
       const result = await this.neynar.publishCast({
-        signerUuid: this.signerUUid,
+        signerUuid: this.signerUUID as string,
         text: cast,
-        parent: parentCastId?.hash,
+        parent: parentCastId?.hash || undefined,
       });
+
+      console.log("result", result);
 
       if (result.success) {
         return {
@@ -68,10 +68,12 @@ export class FarcasterClient {
     fname,
     displayName,
     bio,
+    privateKey,
   }: {
     fname: string;
     displayName: string;
     bio: string;
+    privateKey: string;
   }) {
     // Step 1: Claim a new user FID
     const fidResponse = await axios.get<{ fid: number }>(
@@ -86,7 +88,7 @@ export class FarcasterClient {
     console.log("\ndeadline: ", deadline);
 
     const requestedUserAccount = privateKeyToAccount(
-      process.env.PRIVATE_KEY as `0x${string}`
+      privateKey as `0x${string}`
     );
     const requestedUserAccountSigner = new ViemLocalEip712Signer(
       requestedUserAccount
@@ -113,7 +115,6 @@ export class FarcasterClient {
       });
 
     let signature = bytesToHex(requestedUserSignature.value);
-    console.log("\nsignature: ", signature, "\n");
 
     //register the user
     // Register the user
@@ -134,29 +135,29 @@ export class FarcasterClient {
         },
       }
     );
-    this.signerUUid = regResponse.data.signer.signer_uuid;
+    this.signerUUID = regResponse.data.signer.signer_uuid;
 
     // update the account with username and displayName
     const updated = await this.updateAccount({
       displayName,
-      signeruuid: this.signerUUid,
+      signeruuid: this.signerUUID as string,
       bio: bio,
     });
 
     // TODO: Save the uuid to the database
-    if (updated?.data.success) {
-    } else {
-    }
+    return updated?.data.success || false;
   }
 
   async updateAccount({
     displayName,
     signeruuid,
     bio,
+    imageUrl,
   }: {
     displayName: string;
     signeruuid: string;
     bio: string;
+    imageUrl?: string;
   }) {
     try {
       return await axios.patch(
