@@ -64,10 +64,6 @@ class FarcasterManager extends EventEmitter {
   }
 }
 
-// export const castManager = new FarcasterManager({
-//   neynarApiKey: process.env.NEYNAR_API_KEY!,
-// });
-
 export const exportFarcasterTools = (agent: Agent) => {
   const castManager = new FarcasterManager({
     neynarApiKey: process.env.NEYNAR_API_KEY!,
