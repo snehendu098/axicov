@@ -131,7 +131,7 @@ export default function CreateAgentPage() {
               variant="ghost"
               size="icon"
               className="rounded-full hover:bg-rose-500/10 hover:text-rose-500"
-              onClick={() => router.push("/agents")}
+              onClick={() => router.push("/")}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
