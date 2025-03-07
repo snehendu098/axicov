@@ -1,10 +1,13 @@
-import { isLoggedIn } from "@/actions/login";
+"use client";
 import { redirect } from "next/navigation";
 import React from "react";
+import { useActiveAccount } from "thirdweb/react";
 
-const Layout = async ({ children }: { children: React.ReactNode }) => {
-  if (!(await isLoggedIn())) {
-    redirect("/login");
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const account = useActiveAccount();
+
+  if (!account?.address) {
+    redirect("/");
   }
 
   return <div>{children}</div>;

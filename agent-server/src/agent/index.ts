@@ -112,7 +112,7 @@ export class Agent {
         - **Always try to provide short, clear and concise responses**
         `);
 
-      console.log(this.threadId, this.tools.length);
+      console.log(this.threadId, toolNumbers);
 
       try {
         this.mongoClient = new MongoClient(process.env.MONGO_URI!);

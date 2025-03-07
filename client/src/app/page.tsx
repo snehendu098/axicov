@@ -1,12 +1,10 @@
 "use client";
 
-import { isLoggedIn } from "@/actions/login";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Heart, MessageCircle, Users, Wrench, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import ConnectButton from "@/components/thirdweb/connect-wallet";
 import { useActiveAccount } from "thirdweb/react";
 
@@ -35,6 +33,8 @@ const agents = [
 
 export default function AgentsPage() {
   const account = useActiveAccount();
+
+  console.log(account);
 
   return (
     <div className="min-h-screen bg-[#1c1c1c] text-white font-inter flex flex-col">
@@ -98,7 +98,8 @@ export default function AgentsPage() {
 
         {/* Agents Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {agents.length !== 0 &&
+          {account &&
+            agents.length !== 0 &&
             agents.map((agent) => (
               <div
                 key={agent.id}
@@ -137,7 +138,7 @@ export default function AgentsPage() {
         </div>
 
         {/* Empty State - Will be shown when no agents */}
-        {agents.length === 0 && (
+        {(!account || agents.length === 0) && (
           <div className="text-center bg-[#2a2a2a] rounded-lg p-8">
             <div className="mb-4 flex justify-center">
               <Wrench className="h-16 w-16 text-rose-500" />

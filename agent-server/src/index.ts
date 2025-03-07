@@ -4,8 +4,17 @@ dotenv.config();
 import express from "express";
 import { agentRoutes } from "./api/routes";
 import { errorHandler } from "./utils/errorHandler";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+    credentials: true,
+  })
+);
 
 // Process level error handlers to prevent crashing
 process.on("uncaughtException", (error) => {
@@ -19,6 +28,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api", agentRoutes);
 

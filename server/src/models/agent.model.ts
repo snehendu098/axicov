@@ -30,7 +30,6 @@ const agentSchema = new Schema<Agent>(
     },
     imageUrl: {
       type: String,
-      required: true,
     },
     threadId: {
       type: String,

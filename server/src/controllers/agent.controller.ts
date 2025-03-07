@@ -41,6 +41,11 @@ const initAgent = async (req: Request, res: Response) => {
     let constructedParams;
 
     if (agent) {
+      if (params) {
+        agent.params = { ...agent.params, params };
+        await agent.save();
+      }
+
       constructedParams = {
         ...agent.params,
         name: agent.name,
@@ -57,7 +62,6 @@ const initAgent = async (req: Request, res: Response) => {
     if (
       !name ||
       !description ||
-      !imageUrl ||
       !instructions ||
       !threadId ||
       !toolNumbers ||
@@ -84,7 +88,7 @@ const initAgent = async (req: Request, res: Response) => {
       _id: new mongoose.Types.ObjectId(threadId),
       name,
       description,
-      imageUrl,
+      imageUrl: imageUrl || "",
       instructions,
       params,
       threadId,
@@ -158,4 +162,16 @@ const getAgentParams = async (req: Request, res: Response) => {
   }
 };
 
-export { initAgent, updateAgent, getAgentParams };
+const getAgents = async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+
+    const agents = await AgentModel.find({ createdBy: address });
+
+    res.status(201).json({ success: true, data: agents });
+  } catch (err) {
+    res.status(401).json({ message: "Error occurred", success: false });
+  }
+};
+
+export { initAgent, updateAgent, getAgentParams, getAgents };

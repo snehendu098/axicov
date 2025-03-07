@@ -13,24 +13,52 @@ const agents = new Map<string, Agent>();
 router.post(
   "/agent/init",
   asyncHandler(async (req: any, res: any): Promise<any> => {
-    let { threadId, toolNumbers, params } = req.body;
+    let {
+      threadId,
+      params,
+      name,
+      description,
+      imageUrl,
+      instructions,
+      toolNumbers,
+      createdBy,
+    } = req.body;
 
-    if (!threadId || !toolNumbers || !params) {
-      throw new AppError(
-        "threadId and toolNumbers and params are required",
-        400
-      );
+    console.log("hello", {
+      threadId,
+      params,
+      name,
+      description,
+      imageUrl,
+      instructions,
+      toolNumbers,
+      createdBy,
+    });
+
+    if (!threadId || !params) {
+      throw new AppError("threadId and params are required", 400);
     }
 
     try {
       // TODO: Initialize the agent from the server end (Done)
       const { data } = await axios.post(`${dbEndpoint}/agent/init`, {
         threadId,
+        params,
+        name,
+        description,
+        imageUrl,
+        instructions,
+        toolNumbers,
+        createdBy,
       });
 
       if (data.success) {
         params = { ...data.data, ...params };
+      } else {
+        throw new AppError("Agent Creation Failed", 500);
       }
+
+      console.log("data", data);
 
       // Cleanup existing agent if any
       const existingAgent = agents.get(threadId);
@@ -41,7 +69,7 @@ router.post(
       const agent = new Agent({ threadId, params });
 
       try {
-        await agent.initialize(toolNumbers);
+        await agent.initialize(data.data.toolNumbers);
         await agents.set(threadId, agent);
 
         res.json({

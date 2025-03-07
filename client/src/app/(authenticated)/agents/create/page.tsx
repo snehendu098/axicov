@@ -1,14 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
 import type React from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Save, Search } from "lucide-react";
-import Image from "next/image";
+import mongoose from "mongoose";
+import axios from "axios";
+import { useActiveAccount } from "thirdweb/react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 // Predefined actions (expanded for demonstration)
 const predefinedActions = [
@@ -41,6 +45,8 @@ const predefinedActions = [
 
 export default function CreateAgentPage() {
   const router = useRouter();
+  const account = useActiveAccount();
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -55,6 +61,7 @@ export default function CreateAgentPage() {
   const [selectedActionIndices, setSelectedActionIndices] = useState<number[]>(
     []
   );
+  const [threadId, setThreadId] = useState<string>("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -107,10 +114,57 @@ export default function CreateAgentPage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
-    // router.push("/agents");
+    console.log("indices", selectedActionIndices);
+
+    const {
+      name,
+      description,
+      instructions,
+      farcasterUsername,
+      farcasterBio,
+      farcasterDisplayName,
+    } = formData;
+
+    // Initialize a new agent
+    const id = new mongoose.Types.ObjectId().toString();
+    setThreadId(id);
+
+    try {
+      const { data: dbData } = await axios.post(
+        `${process.env.NEXT_PUBLIC_AGENT_ENDPOINT}/agent/init`,
+        {
+          name,
+          description,
+          imageUrl: "",
+          instructions,
+          threadId: id,
+          toolNumbers: selectedActionIndices,
+          createdBy: account?.address,
+          params: {
+            username: farcasterUsername,
+            displayName: farcasterDisplayName,
+            bio: farcasterBio,
+          },
+        }
+      );
+
+      if (dbData.success) {
+        toast("Successful", {
+          description: "Agent had been created and is getting initialized",
+        });
+
+        redirect(`/chat/${threadId}`);
+      }
+    } catch (err: any) {
+      console.log(err);
+      toast("Error", {
+        className: "bg-rose-500/30 border-rose-500",
+        description: err.message,
+      });
+    }
   };
 
   const filteredActions = predefinedActions.filter(
@@ -304,13 +358,9 @@ export default function CreateAgentPage() {
           <Card className="bg-[#2a2a2a]/80 backdrop-blur-sm border-gray-700/50 p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="relative w-8 h-8">
-                <Image
-                  src="/placeholder.svg?height=32&width=32"
-                  alt="Farcaster Logo"
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                />
+                <Avatar>
+                  <AvatarFallback>Fc</AvatarFallback>
+                </Avatar>
               </div>
               <h2 className="text-lg font-semibold text-white">
                 Farcaster Profile
