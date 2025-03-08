@@ -1,14 +1,16 @@
 "use client";
 import { redirect } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { useActiveAccount } from "thirdweb/react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const account = useActiveAccount();
 
-  if (!account?.address) {
-    redirect("/");
-  }
+  useEffect(() => {
+    if (!account) {
+      redirect("/");
+    }
+  });
 
   return <div>{children}</div>;
 };

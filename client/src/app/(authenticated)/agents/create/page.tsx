@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import type React from "react";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -151,12 +151,11 @@ export default function CreateAgentPage() {
         }
       );
 
-      if (dbData.success) {
-        toast("Successful", {
-          description: "Agent had been created and is getting initialized",
-        });
+      console.log(dbData);
 
-        redirect(`/chat/${threadId}`);
+      if (dbData.success) {
+        console.log("success", threadId);
+        router.push(`/chat/${threadId}`);
       }
     } catch (err: any) {
       console.log(err);

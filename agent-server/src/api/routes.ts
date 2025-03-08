@@ -73,7 +73,7 @@ router.post(
         await agents.set(threadId, agent);
 
         res.json({
-          status: "success",
+          success: true,
           message: "Agent initialized",
           threadId,
         });
@@ -101,29 +101,35 @@ router.post(
 router.post(
   "/agent/:threadId/message",
   asyncHandler(async (req: any, res: any): Promise<any> => {
-    const { threadId } = req.params;
-    const { message } = req.body;
+    try {
+      const { threadId } = req.params;
+      const { message } = req.body;
 
-    if (!message) {
-      throw new AppError("Message is required", 400);
+      if (!message) {
+        throw new AppError("Message is required", 400);
+      }
+
+      const agent = agents.get(threadId);
+      if (!agent) {
+        throw new AppError("Agent not found", 404);
+      }
+
+      const response = await agent.messageAgent(message);
+
+      const constructedRes = {
+        type: "agent",
+        body: response,
+        agentInstance: threadId,
+      };
+
+      // TODO: Send message to the server to save the message from the user and the agent
+
+      console.log(chalk.green(response));
+      return res.status(201).json({ data: constructedRes, success: true });
+    } catch (err: any) {
+      console.log(err);
+      throw new AppError(err.message);
     }
-
-    const agent = agents.get(threadId);
-    if (!agent) {
-      throw new AppError("Agent not found", 404);
-    }
-
-    const response = await agent.messageAgent(message);
-
-    // TODO: Send message to the server to save the message from the user and the agent
-    // const { data } = await axios.post(`${dbEndpoint}/agent/events`, {
-    //   threadId,
-    //   message,
-    //   response,
-    // });
-
-    console.log(chalk.green(response));
-    return res.json({ response });
   })
 );
 
@@ -157,7 +163,7 @@ router.delete(
     sseManager.removeClient(threadId);
 
     res.json({
-      status: "success",
+      success: true,
       message: "Agent cleaned up",
     });
   })

@@ -2,7 +2,7 @@ import { ConnectButton } from "thirdweb/react";
 import { client } from "@/lib/client";
 import { defineChain } from "thirdweb";
 
-const Page = () => {
+export const ConfiguredConnect = () => {
   return (
     <ConnectButton
       client={client}
@@ -10,5 +10,3 @@ const Page = () => {
     />
   );
 };
-
-export default Page;
