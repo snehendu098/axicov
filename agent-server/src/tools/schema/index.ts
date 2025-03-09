@@ -49,7 +49,10 @@ export const blockchainToolsSchema: Tools = {
     name: "nativeSonicBalanceFetcher",
     description: `Gets the native Sonic balance of the user's address. 
       
-      **NOTE**: This tool is used by default when the user asks the agent to tell the user's wallet balance`,
+      **IMPORTANT NOTES**: 
+      - This tool is used by default when the user asks the agent to tell the user's wallet balance
+      - The symbol of the native token is 'S' not 'ETH'
+      `,
     schema: undefined,
   },
 };

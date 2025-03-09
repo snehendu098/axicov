@@ -6,11 +6,15 @@ import { useParams } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import axios from "axios";
 import { AGENT_ENDPOINT, DB_ENDPOINT } from "@/constants";
-import { useActiveAccount } from "thirdweb/react";
+import { useActiveAccount, useWalletBalance } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
-import { Loader } from "lucide-react";
+import { CopyIcon, Loader } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Link from "next/link";
+import { shortenAddress } from "@/helpers";
+import { toast } from "sonner";
+import { client } from "@/lib/client";
+import { defineChain } from "thirdweb";
 
 type MessageType = {
   type: "user" | "agent";
@@ -36,6 +40,12 @@ export default function ChatPage() {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [agentName, setAgentName] = useState<string>("");
   const lastRef = useRef<HTMLDivElement>(null);
+  const [pubKey, setPubKey] = useState<any>("");
+  const balance = useWalletBalance({
+    client: client,
+    address: pubKey,
+    chain: defineChain(57054),
+  });
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -71,6 +81,7 @@ export default function ChatPage() {
       });
       console.log("initAgent", data);
       if (data.success) {
+        setPubKey(data.publicKey);
         setIsInitialized(true);
       }
     } catch (err) {
@@ -123,10 +134,27 @@ export default function ChatPage() {
         className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"
         aria-hidden="true"
       ></div>
-      <header className="p-2 border-b border-[#2a2a2a] shrink-0 relative z-10">
+      <header className="p-4 border-b border-[#2a2a2a] relative px-20 z-10 flex justify-between">
         <Link href={"/"}>
           <h1 className="text-lg font-medium">{agentName}</h1>
         </Link>
+
+        {isInitialized && (
+          <div className="flex items-center justify-center">
+            <CopyIcon
+              onClick={() => {
+                navigator.clipboard.writeText(pubKey);
+                toast("Copied to clipboard", {
+                  description: "Public key copied to clipboard",
+                });
+              }}
+              className="duration-500 text-gray-400 hover:text-gray-50 cursor-pointer"
+            />{" "}
+            <div className="p-1 mx-4 px-4 rounded-md bg-[#e11d48]/60 text-white group duration-500 flex items-center justify-center space-x-4">
+              <p>{shortenAddress(pubKey)}</p>
+            </div>
+          </div>
+        )}
       </header>
 
       <ScrollArea className="flex-1 relative z-10" ref={scrollAreaRef}>

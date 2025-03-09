@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Save, Search } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Search } from "lucide-react";
 import mongoose from "mongoose";
 import axios from "axios";
 import { useActiveAccount } from "thirdweb/react";
@@ -17,30 +17,10 @@ import { toast } from "sonner";
 // Predefined actions (expanded for demonstration)
 const predefinedActions = [
   {
-    title: "Send Message",
-    description: "Send a message to a specified recipient",
+    title: "Price Analyzer",
+    description:
+      "Finds out details about coins. Also can find out the top 10 coin list according to dexscreener",
   },
-  {
-    title: "Schedule Meeting",
-    description: "Schedule a meeting with one or more participants",
-  },
-  {
-    title: "Set Reminder",
-    description: "Set a reminder for a future task or event",
-  },
-  {
-    title: "Create Task",
-    description: "Create a new task in the task management system",
-  },
-  {
-    title: "Generate Report",
-    description: "Generate a report based on specified parameters",
-  },
-  { title: "Send Email", description: "Compose and send an email" },
-  { title: "Create Event", description: "Create a new event in the calendar" },
-  { title: "Assign Task", description: "Assign a task to a team member" },
-  { title: "Run Analysis", description: "Perform data analysis on a dataset" },
-  { title: "Start Video Call", description: "Initiate a video conference" },
 ];
 
 export default function CreateAgentPage() {
@@ -61,7 +41,7 @@ export default function CreateAgentPage() {
   const [selectedActionIndices, setSelectedActionIndices] = useState<number[]>(
     []
   );
-  const [threadId, setThreadId] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -118,6 +98,7 @@ export default function CreateAgentPage() {
     e.preventDefault();
     console.log("Form submitted:", formData);
     console.log("indices", selectedActionIndices);
+    setLoading(true);
 
     const {
       name,
@@ -130,7 +111,6 @@ export default function CreateAgentPage() {
 
     // Initialize a new agent
     const id = new mongoose.Types.ObjectId().toString();
-    setThreadId(id);
 
     try {
       const { data: dbData } = await axios.post(
@@ -154,8 +134,8 @@ export default function CreateAgentPage() {
       console.log(dbData);
 
       if (dbData.success) {
-        console.log("success", threadId);
-        router.push(`/chat/${threadId}`);
+        router.push(`/chat/${id}`);
+        setLoading(false);
       }
     } catch (err: any) {
       console.log(err);
@@ -447,15 +427,17 @@ export default function CreateAgentPage() {
               variant="outline"
               className="border-gray-600 text-gray-300 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500"
               onClick={() => router.push("/agents")}
+              disabled={loading}
             >
               Cancel
             </Button>
             <Button
               type="submit"
+              disabled={loading}
               className="bg-rose-500 hover:bg-rose-600 text-white px-8 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              Create Agent
+              {!loading ? "Create" : <Loader2 className="animate-spin" />}
             </Button>
           </div>
         </form>

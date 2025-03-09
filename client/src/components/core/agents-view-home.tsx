@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ConfiguredConnect } from "../thirdweb";
 import { useActiveAccount } from "thirdweb/react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { shortenAddress } from "@/helpers";
 
 const HomeAgentView = ({ agents }: { agents: any[] }) => {
   const account = useActiveAccount();
@@ -52,24 +53,21 @@ const HomeAgentView = ({ agents }: { agents: any[] }) => {
                   <>
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative w-12 h-12 rounded-lg overflow-hidden group-hover:ring-rose-500/50 transition-all duration-300 group-hover:scale-110">
+                        <div className="relative rounded-lg overflow-hidden group-hover:ring-rose-500/50 transition-all duration-300 group-hover:scale-110">
                           <Avatar>
                             <AvatarFallback className="bg-rose-600 group-hover:bg-rose-800">
                               {agent.name.toString()[0]}
                             </AvatarFallback>
                           </Avatar>
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-100 group-hover:text-rose-300 transition-colors duration-300">
-                          {agent.name}
-                        </h3>
-                      </div>
-                      <div className="flex gap-1">
-                        <button className="p-2 rounded-md hover:bg-rose-500/10 text-gray-400 hover:text-rose-500 transition-all duration-300">
-                          <Heart className="w-5 h-5" />
-                        </button>
-                        <button className="p-2 rounded-md hover:bg-rose-500/10 text-gray-400 hover:text-rose-500 transition-all duration-300">
-                          <MessageCircle className="w-5 h-5" />
-                        </button>
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-100 group-hover:text-rose-300 transition-colors duration-300">
+                            {agent.name}
+                          </h3>
+                          <p className="text-sm text-rose-200">
+                            @{agent.params.username || ""}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300 whitespace-pre-line">
@@ -77,8 +75,8 @@ const HomeAgentView = ({ agents }: { agents: any[] }) => {
                     </p>
                     <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-rose-500/0 via-rose-500/0 to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-br from-rose-500 to-purple-600 opacity-0 group-hover:opacity-15 blur transition-all duration-300 group-hover:blur-md pointer-events-none" />
-                    <div className="text-xs text-rose-300/60">
-                      @{agent.params.username || ""}
+                    <div className="text-sm mt-2 text-rose-300/60">
+                      {shortenAddress(agent.params.publicKey)}
                     </div>
                   </>
                 </Link>
@@ -102,9 +100,10 @@ const HomeAgentView = ({ agents }: { agents: any[] }) => {
               <Button
                 variant="default"
                 size="lg"
+                asChild
                 className="bg-rose-500 text-white hover:bg-rose-600 px-8"
               >
-                Create Agent
+                <Link href={"/agents/create"}>Create Agent</Link>
               </Button>
             ) : (
               <ConfiguredConnect />

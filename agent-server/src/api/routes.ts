@@ -76,6 +76,7 @@ router.post(
           success: true,
           message: "Agent initialized",
           threadId,
+          publicKey: agent.params.publicKey,
         });
       } catch (error: any) {
         // If agent initialization fails, ensure we don't store a partially initialized agent

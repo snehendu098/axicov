@@ -20,7 +20,7 @@ export default function AgentsPage() {
       );
 
       if (data.success) {
-        // console.log(data.data);
+        console.log(data.data);
         setAgents(data.data);
         setLoaded(true);
       }
