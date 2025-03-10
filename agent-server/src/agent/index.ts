@@ -112,8 +112,6 @@ export class Agent {
         - **Always try to provide short, clear and concise responses**
         `);
 
-      console.log(this.threadId, toolNumbers);
-
       try {
         this.mongoClient = new MongoClient(process.env.MONGO_URI!);
         await this.mongoClient.connect(); // Test connection
@@ -129,7 +127,10 @@ export class Agent {
         checkpointSaver: this.checkPointSaver,
       });
 
-      console.log(this.params);
+      console.log(
+        chalk.red("ReAct agent initialized with threadId: "),
+        this.threadId
+      );
 
       try {
         await axios.post(`${dbEndpoint}/agent/update`, {
